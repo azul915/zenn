@@ -16,7 +16,7 @@ a, b2つの2進数文字列が与えられるので、和を2進数文字列で�
 
 # Code
 
-~~~kt
+~~~kotlin
 import java.math.BigInteger
 
 class Solution {
@@ -26,7 +26,7 @@ class Solution {
 }
 ~~~
 
-~~~kt
+~~~kotlin
 import kotlin.math.max
 
 class Solution {
