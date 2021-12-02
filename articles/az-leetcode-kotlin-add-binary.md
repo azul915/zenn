@@ -8,6 +8,8 @@ published: true # 公開設定（falseにすると下書き）
 
 # Question
 
+- https://leetcode.com/problems/add-binary/
+
 ~~~txt
 Given two binary strings a and b, return their sum as a binary string.
 ~~~
