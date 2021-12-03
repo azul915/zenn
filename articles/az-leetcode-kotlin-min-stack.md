@@ -8,6 +8,8 @@ published: true # 公開設定（falseにすると下書き）
 
 # Question
 
+- https://leetcode.com/problems/min-stack/
+
 ~~~txt
 Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.
 
