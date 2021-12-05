@@ -50,8 +50,9 @@ class Solution {
 ![](/images/az-leet-code-kotlin-26/remove-duplicates-from-sorted-array.drawio.png)
 
 # Profile
-    - Runtime: 248 ms
-    - Memory Usage: 41.7 MB
+
+- Runtime: 248 ms
+- Memory Usage: 41.7 MB
 
 # Submission
 - https://leetcode.com/submissions/detail/596460705/
