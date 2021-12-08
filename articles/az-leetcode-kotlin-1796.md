@@ -16,7 +16,7 @@ Given an alphanumeric string s, return the second largest numerical digit that a
 An alphanumeric string is a string consisting of lowercase English letters and digits.
 ~~~
 
-英数字の文字列sが与えられるのので、2番目に大きな数字を返し、存在しない場合は-1を返しなさいという問題
+英数字の文字列sが与えられるので、2番目に大きな数字を返し、存在しない場合は-1を返しなさいという問題
 
 # Code
 
