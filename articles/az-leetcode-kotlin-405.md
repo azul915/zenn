@@ -3,7 +3,7 @@ title: "LeetCode 405. Convert a Number to Hexadecimal" # 記事のタイトル
 emoji: "😞" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["leetcode", "kotlin"] # タグ。["markdown", "rust", "aws"]のように指定する
-published: false # 公開設定（falseにすると下書き）
+published: true # 公開設定（falseにすると下書き）
 ---
 
 # Question
@@ -59,10 +59,17 @@ class Solution {
 ~~~
 
 10進数->16進数は、与えられた10進数を16で割り続けてその剰余を下の位から並べることで、変換できるが、
-制約に-2^{31} <= num <= 2^{31} -1
-問題文の箇所でも言及したとおり、`Integer.toHexString(num)`はできないが、
+制約に-2^{31} <= num <= 2^{31} -1とある中で、`For negative integers, two's complement method is used.`とあるように、
+負の整数には2の補数表現が適用されるため、負の整数のときは、2進数の補数表現にしてから、再び10進数に戻す作業が必要になるため、あまりやりたくない。
+
+問題文の箇所でも言及したとおり、`Integer.toHexString(num)`はできないが、2進数表現にすることは禁じられていないと受け取れるので、遠慮なく負の整数も`Integer.toBinaryString(num)`に入れて、unsignedな2進数にしてから、4ビットずつ10進数に戻す(ただし、10以上15以下についてはa~fでの表現)作業をすればよい。
+
+4ビットずつ処理するときに、上位1~4ビットのロジックがシンプルになるように0埋めを行っている。
 
 # Profile
+- Runtime: 160 ms
+- Memory Usage: 35.7 MB
 
 # Submission
 
+- https://leetcode.com/submissions/detail/606838075/
