@@ -37,7 +37,8 @@ class Solution {
                 left = middle +1
             }
         }
-        return letters[left%letters.size]
+        // return letters[left%letters.size]
+	return if (left <= letters.lastIndex) letters[left] else letters[0]
     }
 }
 ~~~
@@ -61,7 +62,7 @@ class Solution {
 ~~~
 
 ソートされている配列からtargetを探索するときは基本的には2分探索で指数時間で探しに行く。
-
+leftがインデックスの外に行ってしまったときは先頭に戻る(`the letters wrap around`)必要があるので、left > letter.lastIndexのときletters[0]を返すようにする。letters[left%letters.size]でもできるかちょっと思いつかなかった。
 後者の方が理論上計算量が大きくなる想定だが、実際にはこちらのほうが早かった。
 制約が`2 <= letters.length <= 10^4`だったから？
 
@@ -69,13 +70,13 @@ class Solution {
 # Profile
 
 - 1つ目
-	- Runtime: 216 ms ($O(logn))
-	- Memory Usage: 38.3 MB
+	- Runtime: 208 ms ($O(logn))
+	- Memory Usage: 37.9 MB
  
 - 2つ目
 	- Runtime: 204 ms ($O(n^2))
 	- Memory Usage: 38.2 MB
 
 # Submission
-- https://leetcode.com/submissions/detail/606048949/
+- https://leetcode.com/submissions/detail/607474583/
 - https://leetcode.com/submissions/detail/606037599/
