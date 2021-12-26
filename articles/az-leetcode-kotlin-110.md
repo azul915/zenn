@@ -26,7 +26,7 @@ a binary tree in which the left and right subtrees of every node differ in heigh
 
 # Code
 
-~~~kotlini
+~~~kotlin
 /**
  * Example:
  * var ti = TreeNode(5)
