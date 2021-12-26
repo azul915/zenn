@@ -44,7 +44,7 @@ class Solution {
 
         for (idx in binStr.lastIndex downTo 0) {
             /* binStr[idx].toString().toDouble() : 0.0か1.0(各桁のbit値を計算のためにDoubleに変換) */
-            /* 2.0.pow((binStr.lastIndex -idx) %4) : 基数2と重みの掛算, 4ビットずつ処理をするためlastIndexからの距離の剰余で重みが出せる */
+            /* 2.0.pow((binStr.lastIndex -idx) %4) : 基数2と重みの掛算, 4ビットずつ処理をするためlastIndexからの距離と4の剰余で重みが出せる */
             val tmp = binStr[idx].toString().toDouble()*2.0.pow((binStr.lastIndex -idx) %4)
             acc += tmp.toInt()
             if ((binStr.lastIndex -idx) %4 == 3) {
