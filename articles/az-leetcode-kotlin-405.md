@@ -59,6 +59,56 @@ class Solution {
 }
 ~~~
 
+~~~kotlin
+import kotlin.text.StringBuilder
+import kotlin.math.abs
+
+class Solution {
+    fun toHex(num: Int): String {
+        val convMap = mapOf<Int, String>(10 to "a", 11 to "b", 12 to "c", 13 to "d", 14 to "e", 15 to "f")
+        
+        fun forNeg(neg: Int): String {
+            var sb = StringBuilder()
+            val etc = abs(neg).toUInt().inv() +1.toUInt()
+            var cn = etc.toString().toLong()
+            
+            while (0 < cn) {
+                val surplus = if (9 < cn%16) {
+                    convMap[(cn%16).toInt()]
+                } else {
+                    (cn%16).toString()
+                }
+                sb.insert(0, surplus)
+                cn /= 16
+            }
+            return sb.toString()
+        }
+        
+        fun forPos(pos: Int): String {
+            var sb = StringBuilder()
+            var cp = pos
+
+            while (0 < cp) {
+                val surplus = if (9 < cp%16) {
+                    convMap[cp%16]
+                } else {
+                    (cp%16).toString()
+                }
+                sb.insert(0, surplus)
+                cp /= 16
+            }
+            return sb.toString()
+        }
+        
+        return when {
+            num < 0 -> forNeg(num)
+            num == 0 -> "0"
+            else -> forPos(num)
+        }
+    }
+}
+~~~
+
 10進数->16進数は、与えられた10進数を16で割り続けてその剰余を下の位から並べることで、変換できるが、
 制約に-2^{31} <= num <= 2^{31} -1とある中で、`For negative integers, two's complement method is used.`とあるように、
 負の整数には2の補数表現が適用されるため、負の整数のときは、2進数の補数表現にしてから、再び10進数に戻す作業が必要になるため、あまりやりたくない。
@@ -66,6 +116,8 @@ class Solution {
 問題文の箇所でも言及したとおり、`Integer.toHexString(num)`はできないが、2進数表現にすることは禁じられていないと受け取れるので、遠慮なく負の整数も`Integer.toBinaryString(num)`に入れて、unsignedな2進数にしてから、4ビットずつ10進数に戻す(ただし、10以上15以下についてはa~fでの表現)作業をすればよい。
 
 4ビットずつ処理するときに、上位1~4ビットのロジックがシンプルになるように0埋めを行っている。
+
+2つ目は、`Integer.toBinaryString(num)`も使わない方法であり、負の整数を2進数の補数表現として扱うためにunsignedなIntに変換してから、inv()で反転を行い、1を足すところがポイント
 
 # Profile
 - Runtime: 160 ms
