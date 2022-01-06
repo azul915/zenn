@@ -53,7 +53,7 @@ class Solution {
 訪問済みのListNodeをリストvisitedに詰めながら、都度次のListNodeがvisitedに入っていないかを調べる
 あれば、Cycleが存在することになるので、trueを返して終了。
 Cycleが存在しないとき、必ずnextがnullとなる地点まで到達するので、whileを抜けることになり、おのずとfalseを返すことになる。
-visitedをListNodeをkeyとするMapで管理する方式も試したが、Listの方がプロファイルが優秀だったため、Listでの実装をFAとした。
+最初は、検索をO(n)で行う事ができるvisitedをListNodeをkeyとするハッシュテーブル(Map)で管理する方式も試したが、実際はListの方がプロファイルが優秀だったため、Listでの実装をFAとした。
 
 # Profile
 
