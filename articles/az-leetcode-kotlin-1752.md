@@ -3,7 +3,7 @@ title: "LeetCode 1752. Check if Array Is Sorted and Rotated" # 記事のタイ�
 emoji: "😟" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["leetcode", "kotlin"] # タグ。["markdown", "rust", "aws"]のように指定する
-published: false # 公開設定（falseにすると下書き）
+published: true # 公開設定（falseにすると下書き）
 ---
 
 # Question
@@ -18,7 +18,7 @@ There may be duplicates in the original array.
 Note: An array A rotated by x positions results in an array B of the same length such that A[i] == B[(i+x) % A.length], where % is the modulo operation.
 ~~~
 
-与えられた整数配列numsに、昇順ソート
+与えられた整数配列numsについて、昇順ソートで、任意の位置からローテーションしていればtrueを返し、そうでなければfalseを返す問題
 
 # Code
 
@@ -28,21 +28,24 @@ class Solution {
 
         var cnt = 0
         for (idx in 1..nums.lastIndex) {
-            if (nums[idx] < nums[idx-1]) {
-                cnt++
-                if (1 < cnt) return false
-            }
-            if (idx == nums.lastIndex && 0 < cnt && nums[0] < nums[idx]) return false
+            if (nums[idx] < nums[idx-1]) cnt++
         }
-        return true
+        if (nums[0] < nums[nums.lastIndex]) cnt++
+
+        return cnt < 2
     }
 }
 ~~~
 
+1周舐めてローテーションしているかどうかを調べるので、任意の地点に対する直前の地点の値が基本的に小さいことを調べながら以下を不正なパターンとしてチェックすればよい
+- 2回以上任意の地点に対する直前の地点の値が大きくなってはいけない(0回の時、綺麗な昇順ソートであるはず。1回のときローテーションであるはず。)
+- 0番目の値より末尾要素の値が大きくなることがあっても1回まで 
+
 # Profile
 
 - Runtime: 160 ms
-- Memory Usage: 35.7 MB
+- Memory Usage: 35.9 MB
 
 # Submission
-- https://leetcode.com/submissions/detail/607492498/
+- https://leetcode.com/submissions/detail/610359294/
+
