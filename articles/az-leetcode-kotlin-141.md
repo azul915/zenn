@@ -50,15 +50,51 @@ class Solution {
 }
 ~~~
 
+~~~kotlin
+/**
+ * Example:
+ * var li = ListNode(5)
+ * var v = li.`val`
+ * Definition for singly-linked list.
+ * class ListNode(var `val`: Int) {
+ *     var next: ListNode? = null
+ * }
+ */
+
+class Solution {
+    fun hasCycle(head: ListNode?): Boolean {
+        var normal = head
+        var faster = normal?.next
+
+        while (normal != null) {
+            if (normal == faster) return true
+            normal = normal?.next
+            faster = faster?.next?.next
+        }
+        return false
+    }
+}
+~~~
+
+
 訪問済みのListNodeをリストvisitedに詰めながら、都度次のListNodeがvisitedに入っていないかを調べる
 あれば、Cycleが存在することになるので、trueを返して終了。
 Cycleが存在しないとき、必ずnextがnullとなる地点まで到達するので、whileを抜けることになり、おのずとfalseを返すことになる。
 最初は、検索をO(n)で行う事ができるvisitedをListNodeをkeyとするハッシュテーブル(Map)で管理する方式も試したが、実際はListの方がプロファイルが優秀だったため、Listでの実装をFAとした。
 
+別解として、連結リストをたどるポインタを2つ用意して、異なる速さで走らせてみる。
+もし連結リストがCycleならば必ず速いほうが遅い方に1周回って追いつくはずという性質を利用した解き方もできる。
+パフォーマンスの改善は見られなかった。
+
 # Profile
 
-- Runtime: 320 ms
-- Memory Usage: 36.9 MB
+- 1つ目
+	- Runtime: 320 ms
+	- Memory Usage: 36.9 MB
+- 2つ目
+	- Runtime: 298 ms
+	- Memory Usage: 41.6 MB
 
 # Submission
 - https://leetcode.com/submissions/detail/614295751/
+- https://leetcode.com/submissions/detail/614312023/
