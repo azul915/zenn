@@ -8,7 +8,7 @@ published: true # 公開設定（falseにすると下書き）
 
 # Question
 
-- https://leetcode.com/problems/add-to-array-from-of-integer/
+- https://leetcode.com/problems/add-to-array-form-of-integer/
 
 ~~~txt
 The array-form of an integer num is an array representing its digits in left to right order.
