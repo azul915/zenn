@@ -28,7 +28,7 @@ Cursor などのコーディングエージェントに「計画どおりゴー�
 | **How** | 設計と実装 | `spec.md`、コード変更 |
 | **Why** | 判断の経緯 | `work-report.md` の「なぜそうしたか」 |
 | **Must** | LLM が忘れやすいことの機械化 | `push_story_branch.sh`、pre-push hook |
-| **When NOT** | スコープ外の委譲 | 別ドメイン用の実行スキルへ |
+| **When NOT** | スコープ外の委譲 | 別ドメイン・別用途のスキルへ（[付録 A](#付録-aスキル一覧実装済み2026-03-時点) 参照） |
 
 計画があるなら、記録とゲートまでセットにするのがこの型の強み。
 
@@ -211,3 +211,107 @@ doc 分離・複雑 Jira？   → Tier 3（plugin）
 5. **育て方はフィードバックが標準** — 同じ失敗 2 回で Must 化
 
 計画で地図を描き、実行エンジンが地図を見て歩き、失敗のたびにゲートを増やす — この循環を仕組みにするのが、エージェントにゴールまで連れて行かせるための実践的な答え。
+
+---
+
+## 付録 A: スキル一覧（実装済み・2026-03 時点）
+
+本稿ではフレームワークを汎用化して述べたが、**実際に運用している Cursor スキル名**をここに残す。いずれも `~/.cursor/skills/` 配下。
+
+### A-1. 実行スキル本体（Story 単位でゴールまで）
+
+| スキル名 | Tier | 主なリポジトリ | 計画 doc | 役割 |
+|---|---|---|---|---|
+| **`tokuho-sb4-story`** | 3 | アプリ（server） | `doc/move-to-sb4/` | メジャーバージョン**並走 dev 移行**の Story 実行。doc ブランチ分離・PR ゲート・遡及更新まで含む**厚い実行スキル** |
+| **`tokuho-infra-story`** | 1 | インフラ（infra） | `doc/<project>/`（例: `lambda-monitoring`） | 上記を抽象化。`projects/<id>.env` でプロジェクト差分を吸収 |
+
+将来の **`story-execution` meta** は、上記 2 本の共通部分を抽出し、Tier 3 相当は plugin に逃がす想定（**現時点では未作成**）。
+
+### A-2. `tokuho-sb4-story` の When NOT — 委譲先一覧
+
+アプリ移行 Story スキルが**意図的に起動しない**状況と、代わりに使うスキル（スキル定義原文より）。
+
+| 状況 | 委譲先 |
+|---|---|
+| インフラリポジトリの Story（Terraform 等） | **`tokuho-infra-story`** |
+| `develop` / `main` ベースの通常開発・単発バグ修正 | **スキル不要**（Story フローは使わない） |
+| PR 本文・行コメントの**提案だけ**（実装・push はしない） | **`tokuho-sb4-pr-enrich`** |
+| 対象 Epic 外のチケット | **該当プロジェクトの実行スキル**、または通常開発 |
+| スキル自身の品質監査（waxa / description）のみ | **`waxa-eval`** / **`optimizing-descriptions`** |
+
+### A-3. 実行中に併用するスキル（本体ではないが Story フローに組み込まれる）
+
+| スキル名 | 層 | いつ使うか |
+|---|---|---|
+| **`graphify`** | How（探索） | コード変更前の `query`、変更後の `update`。両実行スキルから参照 |
+| **`jira-read`** | What（読取） | Story 特定、`Blocks` 確認、`get_issue.sh` |
+| **`jira-write`** | What（書込） | バックログ登録時の Jira コメント、調査結果の追記 |
+| **`create-pull-request`** | 完了後 | Story ブランチの PR 作成（テンプレ適用） |
+| **`tokuho-sb4-pr-enrich`** | 完了後（任意） | 関心事の多い PR の description / 行コメント**案**（GitHub 自動投稿はしない） |
+
+### A-4. 計画フェーズ用（実行スキルとは別）
+
+| スキル名 | 状態 | 役割 |
+|---|---|---|
+| **`project-planning`** | **未作成**（本稿で設計） | spec / plan memo、Jira 起票、memo → 正本昇格 |
+| **`jira-write`** | 実装済 | 計画時の Epic / Story 一括起票にも使用（SB4 起票時の実績あり） |
+| **`jira-read`** | 実装済 | 計画前の既存チケット調査 |
+
+### A-5. フィードバックループ用メタスキル（実行のたびではない）
+
+| スキル名 | 役割 |
+|---|---|
+| **`retrospective-codify`** | セッション後に「最初の失敗 ↔ 最終解」をスキル / lint / ルールに固定 |
+| **`waxa-eval`** | スキル文言の empirical eval、収束判定 |
+| **`empirical-prompt-tuning`** | waxa の方法論（バイアスフリー executor + 二面評価） |
+| **`optimizing-descriptions`** | スキル `description` の監査・改善 |
+
+### A-6. スキル間の関係（概要）
+
+```mermaid
+flowchart TB
+  subgraph planning["計画（未整備 meta: project-planning）"]
+    JW[jira-write]
+    JR[jira-read]
+  end
+
+  subgraph execution["実行スキル本体"]
+    SB4[tokuho-sb4-story<br/>Tier 3]
+    INF[tokuho-infra-story<br/>Tier 1]
+  end
+
+  subgraph delegate["When NOT で委譲"]
+    PRE[tokuho-sb4-pr-enrich]
+    NONE[通常開発・スキル不要]
+  end
+
+  subgraph adjunct["実行中の併用"]
+    GF[graphify]
+    CPR[create-pull-request]
+  end
+
+  subgraph feedback["フィードバック"]
+    RC[retrospective-codify]
+    WX[waxa-eval]
+  end
+
+  planning -->|spec + plan 正本| SB4
+  planning -->|spec + plan 正本| INF
+  SB4 -->|infra Story| INF
+  SB4 -->|PR 文案のみ| PRE
+  SB4 --> GF
+  SB4 --> CPR
+  INF --> GF
+  SB4 -.-> RC
+  SB4 -.-> WX
+```
+
+### A-7. インスタンス対応表（実行スキル ↔ プロジェクト）
+
+| 実行スキル | project id（.env） | プロジェクトコード | 親 Epic（例） |
+|---|---|---|---|
+| `tokuho-sb4-story` | （スキル内直書き） | SB4-XX | アプリ移行 Epic |
+| `tokuho-infra-story` | `lambda-monitoring` | LMON-XX | 保守運用 Epic |
+
+新規プロジェクト追加時は、**Tier 1 なら `tokuho-infra-story` 型**（`.env` 1 本）、**Tier 3 なら `tokuho-sb4-story` 型**（専用 plugin）を選ぶ、というのが現時点の実運用。
+
