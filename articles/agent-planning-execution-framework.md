@@ -11,70 +11,72 @@ published: false
 - コーディングエージェントに再現性を持たせるには、**What / How / Why / Must / When NOT** の 5 層を分ける
 - 計画は **spec + plan** の 2 本、スキルは **`project-planning`（書く）と `story-execution`（読んで実行）** に分離する
 - `story-execution` はプロジェクトごとの雛形ではなく **meta エンジン 1 本**。プロジェクト差分は主に `projects/<id>.env`
-- 厚いスキル（SB4 級）は **失敗のたびに Must を硬化**した結果。Tier 1 から始め、同じ失敗が 2 回出たら script 化する
-- 本稿は Spring Boot 4 移行（`tokuho-sb4-story`）の実践を抽象化したメモ
+- 厚い実行スキル（Tier 3）は **失敗のたびに Must を硬化**した結果。Tier 1 から始め、同じ失敗が 2 回出たら script 化する
+- 本稿は大規模移行プロジェクトで実際に回した運用を抽象化したメモ
 
 ## はじめに
 
-Cursor などのコーディングエージェントに「計画どおりゴールまで連れて行ってほしい」と依頼するとき、プロンプトだけでは再現性が足りない。自分たちの Spring Boot 4 移行（SB4）では、`tokuho-sb4-story` スキルと `doc/move-to-sb4/` 配下のドキュメント群が、計画・実行・記録・検証を分離した**オペレーティングシステム**として機能している。
+Cursor などのコーディングエージェントに「計画どおりゴールまで連れて行ってほしい」と依頼するとき、プロンプトだけでは再現性が足りない。自分たちの大規模移行では、実行用スキルと `doc/<project>/` 配下のドキュメント群が、計画・実行・記録・検証を分離した**オペレーティングシステム**として機能している。
 
 本稿はその実践を抽象化し、今後のプロジェクトでも再利用できる枠組みとして整理した。
 
-## 1. SB4 で何が効いていたか — 5 層
+## 1. 何が効いていたか — 5 層
 
-| 層 | 役割 | SB4 での具体例 |
+| 層 | 役割 | 具体例 |
 |---|---|---|
-| **What** | ゴールとタスクの一次ソース | `jira-ticket-plan.md` の SB4-XX、完了条件 |
-| **How** | 設計と実装 | `sb4-dev-parallel.md`、コード変更 |
+| **What** | ゴールとタスクの一次ソース | `jira-ticket-plan.md` の PROJ-XX、完了条件 |
+| **How** | 設計と実装 | `spec.md`、コード変更 |
 | **Why** | 判断の経緯 | `work-report.md` の「なぜそうしたか」 |
 | **Must** | LLM が忘れやすいことの機械化 | `push_story_branch.sh`、pre-push hook |
-| **When NOT** | スコープ外の委譲 | `tokuho-infra-story` など別スキルへ |
+| **When NOT** | スコープ外の委譲 | 別ドメイン用の実行スキルへ |
 
-計画があるなら、記録とゲートまでセットが SB4 型の強み。
+計画があるなら、記録とゲートまでセットにするのがこの型の強み。
 
 ## 2. 計画ドキュメント 2 本の棲み分け
 
 ### spec と plan
 
-| | spec（`sb4-dev-parallel.md`） | plan（`jira-ticket-plan.md`） |
+| | spec（`spec.md`） | plan（`jira-ticket-plan.md`） |
 |---|---|---|
 | 問い | 何を・なぜ・どうやるか | 誰が・いつ・どのチケットで |
-| 軸 | 技術フェーズ | Jira Story（SB4-XX） |
-| 相互参照 | Phase 6 で plan へ | 冒頭で spec へ |
+| 軸 | 技術フェーズ | Jira Story（PROJ-XX） |
+| 相互参照 | 末尾で plan へ | 冒頭で spec へ |
 
 **plan → spec は中身を読む。spec → plan はチケットを探す。**
 
 技術 Phase と Story は 1:1 ではない。plan は並行作業単位、spec は技術の横断マップ。
 
-### memo → 正本の流れ（SB4 の実例）
+### memo → 正本の流れ
 
 ```text
 探索（チャット）→ spec memo → plan memo → Jira 起票 → doc/<project>/ へ昇格 → 実行 doc 追加
 ```
 
-| 日時 | 出来事 |
-|---|---|
-| 7/17 0:30 | `memo-spring-boot-4-sb4-dev-parallel.md` 初版 |
-| 7/21 14:10 | `memo-spring-boot-4-jira-ticket-plan.md` 初版 |
-| 7/21 午後 | Jira 起票、`doc/move-to-sb4/` へ正本化 |
+典型的なタイムライン:
 
-`~/sugi/memo-*.md` はスナップショット。以降の正本は `tokuho_server/doc/move-to-sb4/` のみ更新。
+| 段階 | 出来事 |
+|---|---|
+| 第 1 週 | チャットで探索・方針合意 → spec memo 初版 |
+| 第 2 週 | plan memo 初版 → Jira 起票 |
+| 第 2 週末 | `doc/<project>/` へ正本化、integration ブランチ作成 |
+
+`~/memo-*.md` はスナップショット。以降の正本はリポジトリ内 `doc/<project>/` のみを更新する。
 
 ### 実行フェーズで増える doc
 
 ```text
 spec / plan（計画）
 issue-pr-mapping（問題索引）
-reports/TOKUHO-xxxx/work-report（判断記録）
+reports/PROJ-xxxx/work-report（判断記録）
 ```
 
 ## 3. Jira との 3 段 ID
 
 | ID | 例 | 記載先 |
 |---|---|---|
-| プロジェクトコード | SB4, LMON | plan 見出し |
-| Story 連番 | SB4-07 | plan セクション |
-| Jira キー | TOKUHO-1315 | 対応表、ブランチ |
+| プロジェクトコード | MIGR, INFR | plan 見出し |
+| Story 連番 | MIGR-07 | plan セクション |
+| Jira キー | PROJ-1315 | 対応表、ブランチ |
 | Task 連番 | 7-3 | plan のみ |
 
 ## 4. スキル設計 — 計画と実行は別
@@ -95,7 +97,7 @@ story-execution/          # meta（1 本だけ育てる）
 ├── projects/
 │   ├── registry.yaml     # プロジェクト選択
 │   ├── _template.env     # 雛形（ここだけコピー）
-│   └── sb4.env
+│   └── app-migration.env
 └── scripts/              # 汎用
 ```
 
@@ -108,20 +110,20 @@ story-execution/          # meta（1 本だけ育てる）
 | Tier | 足すもの | 例 |
 |---|---|---|
 | 0 | なし | 単発 Story → planning のみ |
-| 1 | `doc/` + `.env` | lambda-monitoring |
-| 2 | verify script 1〜2 本 | gradlew / terraform |
-| 3 | plugin / wrapper | SB4（30+ scripts） |
+| 1 | `doc/` + `.env` | インフラ横断改善 |
+| 2 | verify script 1〜2 本 | ビルド / terraform plan |
+| 3 | plugin / wrapper | 大規模移行（30+ scripts） |
 
-SB4 の厚さは初回設計ではなく、**#1645（spotless 落ち）など失敗のたびに Must が硬化した結果**。
+Tier 3 の厚さは初回設計ではなく、**CI が formatter 未適用で落ちた**など、失敗のたびに Must が硬化した結果。
 
 ## 6. ルーティング — どの doc を読むか
 
 ### ① プロジェクト選択（registry）
 
 ```yaml
-sb4:
-  env: sb4.env
-  jira_parent: TOKUHO-1309
+app-migration:
+  env: app-migration.env
+  jira_parent: PROJ-1309
 ```
 
 Jira キー → registry → `.env` を load。
@@ -129,14 +131,14 @@ Jira キー → registry → `.env` を load。
 ### ② ドキュメントパス（.env）
 
 ```bash
-PLAN_REL=doc/move-to-sb4/jira-ticket-plan.md
-SPEC_REL=doc/move-to-sb4/sb4-dev-parallel.md
+PLAN_REL=doc/app-migration/jira-ticket-plan.md
+SPEC_REL=doc/app-migration/spec.md
 ```
 
 ### ③ Story → spec 章（plan が持つ）
 
 ```markdown
-## SB4-07 (TOKUHO-1315): ...
+## MIGR-07 (PROJ-1315): ...
 **spec 参照:** Phase A
 ```
 
@@ -149,15 +151,15 @@ registry はプロジェクト入口、plan は Story 単位の参照。二重�
 | 0 | 手動 1 本 → 迷いをメモ |
 | 1 | ワークフローのみ |
 | 2 | **同じ失敗 2 回 → script 化** |
-| 3 | waxa eval |
-| 4 | retrospective-codify |
+| 3 | スキル eval（waxa 等） |
+| 4 | セッション後の教訓固定（retrospective-codify） |
 | 5 | 遡及適用（スキル改善時に既存 doc を放置しない） |
 
 層ごとの出口:
 
 - **Must** が主戦場（verify / hook）
 - **Why** → work-report
-- 教訓 → `reference.md` 変更履歴に 1 行（SB4 の #1645 パターン）
+- 教訓 → `reference.md` 変更履歴に 1 行
 
 ## 8. 実行フロー（6 フェーズ）
 
@@ -188,9 +190,3 @@ doc 分離・複雑 Jira？   → Tier 3（plugin）
 5. **育て方はフィードバックが標準** — 同じ失敗 2 回で Must 化
 
 計画で地図を描き、実行エンジンが地図を見て歩き、失敗のたびにゲートを増やす — この循環を仕組みにするのが、エージェントにゴールまで連れて行かせるための実践的な答え。
-
-## 参考
-
-- `tokuho_server/doc/move-to-sb4/` — SB4 正本 doc
-- `~/.cursor/skills/tokuho-sb4-story/` — SB4 実行スキル（Tier 3 寄り）
-- `~/.cursor/skills/tokuho-infra-story/` — infra 実行スキル（Tier 1 寄り）
